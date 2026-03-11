@@ -1,0 +1,121 @@
+﻿@page "{id:int}"
+@model PollStation.Pages.PollPageModel
+
+<div class="container questionArea">
+
+    <h1>@Model.Poll.Question</h1>
+
+    <!-- QR CODE -->
+    @if (Model.Poll.QrCode != null)
+    {
+        <div class="qrArea">
+            <p>Scan to vote</p>
+            <img src="data:image/png;base64,@Model.Poll.QrCode" width="160" />
+        </div>
+    }
+
+    <div class="pollButtonArea">
+
+        @foreach (var option in Model.Poll.Options)
+        {
+            <form method="post" asp-page-handler="Vote">
+
+                <input type="hidden" name="optionId" value="@option.Id" />
+                <input type="hidden" name="pollId" value="@Model.Poll.Id" />
+
+                <button class="btn btn-primary pollButton">
+                    @option.Text
+                </button>
+
+            </form>
+        }
+
+    </div>
+
+    <hr />
+
+    <h3>Results</h3>
+
+    <!-- STACKED PROGRESS BAR -->
+    <div class="progress bigProgress">
+
+        @{
+            var colors = new string[]
+            {
+                "bg-success",
+                "bg-info",
+                "bg-warning",
+                "bg-danger"
+            };
+
+            int i = 0;
+        }
+
+        @foreach (var option in Model.Poll.Options)
+        {
+            var percent = Model.Percentage(option.Votes);
+            var color = colors[i % colors.Length];
+
+            <div class="progress-bar @color"
+                 role="progressbar"
+                 style="width:@percent%">
+
+                @option.Text (@percent%)
+
+            </div>
+
+            i++;
+        }
+
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+
+        @foreach (var option in Model.Poll.Options)
+        {
+            var percent = Model.Percentage(option.Votes);
+
+            <div>
+                <strong>@option.Text</strong> — @percent% (@option.Votes votes)
+            </div>
+        }
+
+    </div>
+
+</div>
+
+<style>
+
+    .questionArea {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .qrArea {
+        margin: 20px;
+    }
+
+    .pollButtonArea {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pollButton {
+        width: 250px;
+        margin: 10px;
+    }
+
+    .bigProgress {
+        height: 40px;
+        margin-top: 20px;
+    }
+
+    .legend {
+        margin-top: 15px;
+    }
+
+</style>

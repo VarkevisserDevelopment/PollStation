@@ -1,0 +1,29 @@
+﻿@page
+@model PollStation.Pages.PollIndexModel
+
+<h1>Your Polls</h1>
+
+<a class="btn btn-primary" asp-page="/CreatePoll">Create new poll</a>
+
+<table class="table mt-3">
+    <thead>
+        <tr>
+
+            <th>Question</th>
+            <th>Open</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var poll in Model.Polls)
+        {
+            <tr>
+                <td>@poll.Question</td>
+                <td>
+                    <a class="btn btn-success" asp-page="/PollPage" asp-route-id="@poll.Id">
+                        Open
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

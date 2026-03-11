@@ -1,4 +1,13 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PollStation.Data;
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("PollStationContextConnection") ?? throw new InvalidOperationException("Connection string 'PollStationContextConnection' not found.");
+
+
+builder.Services.AddDbContext<PollStationContext>(options =>options.UseSqlite("Data Source=PollStation.db"));
+//Later requireconfirmed account to true!!
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false).AddEntityFrameworkStores<PollStationContext>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
