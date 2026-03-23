@@ -3,6 +3,51 @@
 @{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
+<div class="privacyPage">
+    <div class="privacyBox">
+    <h1>About</h1>
+    <br />
+    <p>Welcome to poll station!</p>
+    <p>Here you can find the use case for this site, the privacy policy and if needed our contact form!</p>
+    </div>
+    <div class="privacyBox">
+    <h2>Use Case</h2>
+    <p>On this site you can make an account and....</p>
+    <!--Hier instructies geven en onderin een form toevoegen!!! en nog wat toevoegen voor andere developers zoals database rechten & koppelen etc.-->
 
-<p>Use this page to detail your site's privacy policy.</p>
+
+    </div>
+    <div class="privacyBox">
+        <h1>Privacy</h1>
+        <br />
+        <p>*This site only uses one authentication cookie for you're Login information!</p>
+        <p>*You're mail adress is only used for Login uses and wont be sold or used for other purposes.</p>
+        <p>*We promise we are doing or best to keep this site as safe as we can.</p>
+        <p>*We can't 100% garantee that malicious actor's won't get to you're information through malicious acts</p>
+        <p>  and we sadly can't give any right's for that either, cause of our small no-paywall mentality.</p>
+    </div>
+    <br />
+    <div class="privacyBox">
+    <h1>Help</h1>
+        <br />
+        <p>Found a bug, have a problem with the site or are you strugling with some isseus on this site?</p>
+        <p>Then please fill out this form and we will try to help you or solve the issue!</p>
+    </div>
+</div>
+<style>
+    .privacyPage {
+        background-image: url('/Images/BackgroundBlue.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        border: solid 2px black;
+        margin-top: 1rem;
+        padding: 2rem;
+    }
+
+    .privacyBox {
+        background-color: #fafafa;
+        border: solid 2px black;
+        margin-top: 1rem;
+        padding: 1rem;
+    }
+</style>

@@ -1,7 +1,13 @@
 ﻿@page "{id:int}"
 @model PollStation.Pages.PollPageModel
 
-<div class="container questionArea">
+<!--Hier nog de indeling goed zetten en de progressbar customizen!! daarbij pijltjes naar volgende qeustion-->
+<div class="questionArea">
+
+    <div class="customPollPage">
+    <div class="onlineCounter">
+        Users connected: <span id="onlineUsers">0</span>
+    </div>
 
     <h1>@Model.Poll.Question</h1>
 
@@ -20,8 +26,8 @@
         {
             <form method="post" asp-page-handler="Vote">
 
-                <input type="hidden" name="optionId" value="@option.Id" />
-                <input type="hidden" name="pollId" value="@Model.Poll.Id" />
+                <input type="hidden" name="optionId" value="@option.UserId" />
+                <input type="hidden" name="pollId" value="@Model.Poll.UserId" />
 
                 <button class="btn btn-primary pollButton">
                     @option.Text
@@ -80,10 +86,30 @@
                 <strong>@option.Text</strong> — @percent% (@option.Votes votes)
             </div>
         }
-
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
+    <script>
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/pollhub")
+            .build();
+
+        connection.on("PollUpdated", function () {
+
+            location.reload();
+
+        });
+
+        connection.on("UpdateUsers", function (count) {
+            document.getElementById("onlineUsers").innerText = count;
+        });
+        connection.start();
+    </script>
+    </div>
 </div>
+
+
 
 <style>
 
@@ -91,7 +117,18 @@
         display: flex;
         flex-direction: column;
         text-align: center;
+        border: solid 2px black;
+        background-image: url('/Images/BackgroundGreen.png');
+        background-size: cover;
+        background-repeat: no-repeat;
         margin-top: 30px;
+    }
+
+    .customPollPage {
+        margin: 2rem;
+        background-color: #fafafa;
+        border: solid 2px black;
+        border-radius: 5px;
     }
 
     .qrArea {

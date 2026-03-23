@@ -1,18 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace PollStation.Models
+﻿namespace PollStation.Models
 {
+    public enum PollStatus
+    {
+        Draft,
+        Published,
+        Closed
+    }
+
     public class Poll
     {
         public int Id { get; set; }
 
-        [Required]
-        public string Question { get; set; }
+        public string Question { get; set; } = string.Empty;
 
-        public string UserId { get; set; }
+        public List<PollOption> Options { get; set; } = new List<PollOption>();
 
-        public string QrCode { get; set; }
+        public string? QrCode { get; set; }
 
-        public List<PollOption> Options { get; set; } = new();
+        public string UserId { get; set; } = string.Empty;
+
+        public PollStatus Status { get; set; }
     }
 }

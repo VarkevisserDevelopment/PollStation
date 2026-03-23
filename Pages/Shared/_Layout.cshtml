@@ -10,28 +10,70 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-transparent border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg bg-transparent">
+
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">PollStation</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+                <!-- LOGO -->
+                <a class="navbar-brand" asp-area="" asp-page="/Index"></a>
+
+                <!-- TOGGLE BUTTON (mobile) -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <!-- NAV CONTENT -->
+                <div class="collapse navbar-collapse" id="navbarContent">
+
+                    <!-- LINKS -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link text-dark" asp-page="/PollIndex">Poll's</a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-page="/Privacy">About</a>
                         </li>
+
                     </ul>
-                    <!--Nog af te maken-->
-                    <div class="userInfo">
-                        <h5>Welcome Guest <img src="favicon.ico"/></h5>
+
+                    <!-- RIGHT SIDE (USER INFO) -->
+                    <div class="d-flex align-items-center">
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <span class="me-3">
+                                Welcome @User.Identity.Name
+                            </span>
+
+                            <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/Index">
+                                <button class="commentBtn">
+                                    Logout
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+
+                            <span class="me-3">
+                                Welcome Guest
+                            </span>
+
+                                <form method="post" asp-area="Identity" asp-page="/Account/Login">
+                                    <button class="commentBtn">
+                                        Login
+                                    </button>
+                                </form>
+
+                        }
+
                     </div>
+
                 </div>
+
             </div>
+
         </nav>
     </header>
     <div class="container">
@@ -40,9 +82,9 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - PollStation - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="footer text-muted">
+        <div class="container footerStyle">
+            &copy; 2026 - VarkevisserDevelopment
         </div>
     </footer>
 
@@ -54,8 +96,70 @@
 </body>
 </html>
 
-    <style>
-        body {
-            background-color: red;
+<style>
+    body {
+        background-color: #fafafa;
     }
-    </style>
+
+    .navbar {
+        border-bottom: solid 2px black;
+        max-height: 4rem;
+    }
+
+    .navbar-brand {
+        width: 400px;
+        height: 120px;
+        background-image: url('/Images/PollstationHeaderText1.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        background-color: transparent;
+        margin-left: 1rem;
+        padding: 0;
+    }
+
+    .customUserIcon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .userInfo {
+        display: flex;
+    }
+
+    .footer {
+        border-top: solid 2px black;
+    }
+
+    .footerStyle {
+        display: flex;
+        justify-content: end;
+    }
+
+    .commentBtn {
+        width: 150px;
+        height: 60px;
+        background-image: url('/Images/CommentTextBoxShadow.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        margin-left: 1rem;
+    }
+
+    .commentBtn:hover {
+        width: 200px;
+        height: 90px;
+        background-image: url('/Images/CommentTextBoxhovered.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        margin-left: 1rem;
+    }
+</style>

@@ -1,37 +1,92 @@
 ﻿@page
 @model PollStation.Pages.CreatePollModel
 
-<h1>Create Poll</h1>
 
-<form method="post">
+<div class="customCreatePoll">
+    <div class="customCreatePollIndex">
+        <h1>Create Poll</h1>
 
-    <div class="form-group">
-        <label>Question</label>
-        <input asp-for="Poll.Question" class="form-control" />
+        <form method="post">
+
+            <div class="form-group mt-3">
+
+                <div class="form-group">
+                    <label>Question</label>
+                    <input asp-for="Poll.Question" class="form-control" placeholder="Enter your question..." />
+                </div>
+
+                <label>Options</label>
+
+                <div id="optionsContainer">
+
+                    <div class="option-item mt-2">
+                        <input name="Options" class="form-control" placeholder="Option 1" />
+                    </div>
+
+                    <div class="option-item mt-2">
+                        <input name="Options" class="form-control" placeholder="Option 2" />
+                    </div>
+
+                </div>
+
+                <div class="mt-3 d-flex justify-content-center gap-3">
+
+                    <button type="button" class="btn btn-success" onclick="addOption()">➕</button>
+
+                    <button type="button" class="btn btn-danger" onclick="removeOption()">➖</button>
+
+                </div>
+            </div>
+
+            <button class="btn btn-primary mt-3">
+                Create Poll
+            </button>
+        </form>
     </div>
+</div>
 
-    <div class="form-group mt-3">
-        <label>Option 1</label>
-        <input name="Options" class="form-control" />
-    </div>
+<script>
+    let optionCount = 2;
 
-    <div class="form-group mt-2">
-        <label>Option 2</label>
-        <input name="Options" class="form-control" />
-    </div>
+    function addOption() {
+        optionCount++;
 
-    <div class="form-group mt-2">
-        <label>Option 3</label>
-        <input name="Options" class="form-control" />
-    </div>
+        const container = document.getElementById("optionsContainer");
 
-    <div class="form-group mt-2">
-        <label>Option 4</label>
-        <input name="Options" class="form-control" />
-    </div>
+        const div = document.createElement("div");
+        div.classList.add("option-item", "mt-2");
 
-    <button class="btn btn-primary mt-3">
-        Create Poll
-    </button>
+        div.innerHTML = `
+            <input name="Options" class="form-control" placeholder="Option ${optionCount}" />
+        `;
 
-</form>
+        container.appendChild(div);
+    }
+
+    function removeOption() {
+        const container = document.getElementById("optionsContainer");
+
+        if (optionCount > 2) {
+            container.removeChild(container.lastElementChild);
+            optionCount--;
+        }
+    }
+</script>
+
+<style>
+    .customCreatePoll {
+        background-image: url('/Images/BackgroundBlue.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        border: solid 2px black;
+        margin-top: 1rem;
+        padding: 2rem;
+    }
+
+    .customCreatePollIndex {
+        background-color: #fafafa;
+        border: solid 2px black;
+        margin-top: 1rem;
+        padding: 1rem;
+    }
+</style>

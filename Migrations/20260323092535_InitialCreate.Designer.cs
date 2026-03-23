@@ -11,7 +11,7 @@ using PollStation.Data;
 namespace PollStation.Migrations
 {
     [DbContext(typeof(PollStationContext))]
-    [Migration("20260310115226_InitialCreate")]
+    [Migration("20260323092535_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -222,13 +222,15 @@ namespace PollStation.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
+                    b.Property<string>("QrCode")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Question")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -249,6 +251,10 @@ namespace PollStation.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

@@ -1,29 +1,143 @@
 ﻿@page
 @model PollStation.Pages.PollIndexModel
 
-<h1>Your Polls</h1>
+<!--Knoppen bewerken en alle componenten met een margin en witte achtergrond maken!!-->
 
-<a class="btn btn-primary" asp-page="/CreatePoll">Create new poll</a>
+<div class="pollIndexPage">
+    <div class="customPollIndexPage">
+    <h1>Your Polls</h1>
 
-<table class="table mt-3">
-    <thead>
-        <tr>
-
-            <th>Question</th>
-            <th>Open</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var poll in Model.Polls)
-        {
+    <a class="btn btn-primary mb-3" asp-page="/CreatePoll">
+        Create Poll
+    </a>
+    </div>
+    <table class="table table-striped">
+        <thead>
             <tr>
-                <td>@poll.Question</td>
-                <td>
-                    <a class="btn btn-success" asp-page="/PollPage" asp-route-id="@poll.Id">
-                        Open
-                    </a>
-                </td>
+                <th>Question</th>
+                <th>Status</th>
+                <th>Votes</th>
+                <th>QR</th>
+                <th>Actions</th>
             </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var poll in Model.Polls)
+            {
+
+                <tr>
+                    <td>
+                        <strong>@poll.Question</strong>
+                    </td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle"
+                                    data-bs-toggle="dropdown">
+                                @poll.Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <form method="post" asp-page-handler="ChangeStatus">
+                                        <input type="hidden" name="pollId" value="@poll.UserId" />
+                                        <input type="hidden" name="status" value="Draft" />
+                                        <button class="dropdown-item">Draft</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-page-handler="ChangeStatus">
+                                        <input type="hidden" name="pollId" value="@poll.UserId" />
+                                        <input type="hidden" name="status" value="Published" />
+                                        <button class="dropdown-item">Published</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form method="post" asp-page-handler="ChangeStatus">
+                                        <input type="hidden" name="pollId" value="@poll.UserId" />
+                                        <input type="hidden" name="status" value="Closed" />
+                                        <button class="dropdown-item">Closed</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td>
+                        @Model.TotalVotes(poll)
+                    </td>
+                    <td>
+                        @if (poll.QrCode != null)
+                        {
+                            <img src="data:image/png;base64,@poll.QrCode" width="80" />
+                        }
+                    </td>
+                    <td>
+                        @if (poll.Status == PollStation.Models.PollStatus.Published)
+                        {
+                            <a class="btn btn-primary btn-sm"
+                               asp-page="/PollPage"
+                               asp-route-id="@poll.UserId">
+                                Open Poll
+                            </a>
+                        }
+
+                        <a class="btn btn-success btn-sm"
+                           asp-page="/PollIndex"
+                           asp-route-ShowResultsFor="@poll.UserId">
+                            Results
+                        </a>
+
+                        <form method="post"
+                              asp-page-handler="Delete"
+                              style="display:inline">
+                            <input type="hidden" name="pollId" value="@poll.UserId" />
+                            <button class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Delete poll?')">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                @if (Model.ShowResultsFor == poll.Id)
+                {
+                    <tr>
+                        <td colspan="5">
+                            <h5>Results</h5>
+                            @foreach (var option in poll.Options)
+                            {
+                                var percent = Model.Percentage(option.Votes, poll);
+                                <div class="mb-2">
+                                    <strong>@option.Text</strong>
+                                    <div class="progress">
+                                        <div class="progress-bar"
+                                             role="progressbar"
+                                             style="width:@percent%">
+                                            @percent%
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }            
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .pollIndexPage {
+        background-image: url('/Images/BackgroundBlue.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        border: solid 2px black;
+        margin: 1rem;
+        padding: 2rem;
+    }
+
+    .customPollIndexPage {
+        background-color: #fafafa;
+        border: solid 2px black;
+        padding: 0.5rem;
         }
-    </tbody>
-</table>
+</style>

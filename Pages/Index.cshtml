@@ -3,25 +3,138 @@
 @{
     ViewData["Title"] = "Home page";
 }
+<div class="row">
+    <div class="col-2"></div>
 
-<div class="indexPage">
-    <div class="text-center">
-        <h1 class="display-4">Welcome on PollStation</h1>
-        <p>Create a poll, Share it with friends and or colleagues and save and share you're results!</p>
+    <div class="indexPage col-8">
 
-        <button class="btn btn-primary">
-            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Login">Login</a>
-        </button>
+        <div class="row g-2">
+
+            <!-- ITEM 1 -->
+            <div class="col-6">
+                <div class="box firstIndexPage text-center">
+
+                    <h1 class="display-4">Welcome on PollStation!</h1>
+
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+
+                        <form method="get" asp-page="/PollIndex">
+                            <button class="customIndexBtn">
+                                Go to dashboard
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+
+                        <form method="post" asp-area="Identity" asp-page="/Account/Login">
+                            <button class="customIndexBtn">
+                                Login
+                            </button>
+                        </form>
+                    }
+
+                </div>
+            </div>
+
+            <!-- ITEM 2 -->
+            <div class="col-6">
+                <div class="box">
+                    <h3>The free and best poll site!</h3>
+                    <p>Create a poll, share it and view results!</p>
+                </div>
+            </div>
+
+            <!-- ITEM 3 -->
+            <div class="col-6">
+                <div class="box box-bottom">
+                    <p>This website is made by</p>
+                    <h3>varkevisserDevelopment</h3>
+                    <br />
+                    <p>github.com/VarkevisserDevelopment/PollStation</p>
+                    <p>Version: 0.9.1</p>
+                </div>
+            </div>
+
+            <!-- ITEM 4 -->
+            <div class="col-6">
+                <div class="box fourthIndexPage box-bottom">
+                    <h3>Help us maintain and grow!</h3>
+                    <p>Even the smallest help would be greatly appreciated!</p>
+                    <form method="get" asp-area="Identity" asp-page="/Account/Login">
+                        <button class="customIndexBtn">
+                            Sponser us!
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
     </div>
-</div>
 
+    <div class="col-2"></div>
+</div>
 <style>
     .indexPage {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 80vh;
-        background-color: #fafafa;
+        margin-top: 1rem;
         border: solid 2px black;
     }
+
+    .box {
+        height: 100%;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border: solid 2px black;
+        margin: 2px;
+    }
+
+    .box-bottom {
+        transform: translateY(-4px);
+    }
+
+    .firstIndexPage {
+        justify-content: center;
+        align-items: center;
+        background-image: url('/Images/BackgroundYellow.png');
+        border: solid 2px black;
+    }
+
+    .fourthIndexPage {
+        justify-content: center;
+        align-items: center;
+        background-image: url('/Images/BackgroundRed.png');
+        border: solid 2px black;
+    }
+
+    .customIndexBtn {
+        width: 300px;
+        height: 100px;
+        justify-content: center;
+        align-items: center;
+        background-image: url('/Images/TextBoxShadow.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        background-color: transparent;
+        padding: 0;
+    }
+
+        .customIndexBtn:hover {
+            width: 300px;
+            height: 100px;
+            background-image: url('/Images/TextBoxHooverd.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: none;
+            background-color: transparent;
+            padding: 0;
+        }
 </style>

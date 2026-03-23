@@ -1,22 +1,27 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using PollStation.Data;
 using PollStation.Models;
+using Microsoft.AspNetCore.SignalR;
+using PollStation.Hubs;
 
 namespace PollStation.Pages
 {
     public class PollPageModel : PageModel
     {
         private readonly PollStationContext _context;
+        private readonly IHubContext<PollHub> _hub;
 
-        public PollPageModel(PollStationContext context)
+        public PollPageModel(PollStationContext context, IHubContext<PollHub> hub)
         {
             _context = context;
+            _hub = hub;
         }
 
         public Poll Poll { get; set; }
 
+        // ✅ Load poll
         public async Task<IActionResult> OnGetAsync(int id)
         {
             Poll = await _context.Polls
@@ -29,10 +34,12 @@ namespace PollStation.Pages
             return Page();
         }
 
+        // ✅ Vote handler + cookie lock + live update
         public async Task<IActionResult> OnPostVoteAsync(int optionId, int pollId)
         {
             var cookieName = $"voted_poll_{pollId}";
 
+            // 🍪 Check of al gestemd is
             if (Request.Cookies[cookieName] != null)
             {
                 return RedirectToPage(new { id = pollId });
@@ -46,25 +53,29 @@ namespace PollStation.Pages
                 await _context.SaveChangesAsync();
             }
 
-            Response.Cookies.Append(cookieName, "true", new CookieOptions
-            {
-                Expires = DateTimeOffset.Now.AddDays(30)
-            });
+            // 🍪 Cookie zetten (30 dagen)
+            Response.Cookies.Append(cookieName, "true",
+                new CookieOptions
+                {
+                    Expires = DateTimeOffset.Now.AddDays(30)
+                });
+
+            // 🔄 Live update via SignalR
+            await _hub.Clients.All.SendAsync("PollUpdated");
 
             return RedirectToPage(new { id = pollId });
         }
 
-        public int TotalVotes()
-        {
-            return Poll.Options.Sum(o => o.Votes);
-        }
+        // ✅ Totaal aantal stemmen (veilig tegen null)
+        public int TotalVotes => Poll?.Options?.Sum(o => o.Votes) ?? 0;
 
+        // ✅ Percentage berekening
         public int Percentage(int votes)
         {
-            var total = TotalVotes();
-            if (total == 0) return 0;
+            if (TotalVotes == 0)
+                return 0;
 
-            return (int)Math.Round((double)votes / total * 100);
+            return (int)Math.Round((double)votes / TotalVotes * 100);
         }
     }
 }
