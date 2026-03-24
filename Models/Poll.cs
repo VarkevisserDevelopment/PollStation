@@ -2,8 +2,7 @@
 {
     public enum PollStatus
     {
-        Draft,
-        Published,
+        Open,
         Closed
     }
 

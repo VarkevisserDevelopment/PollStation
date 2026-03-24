@@ -1,129 +1,166 @@
 ﻿@page
 @model PollStation.Pages.PollIndexModel
+@Html.AntiForgeryToken()
 
-<!--Knoppen bewerken en alle componenten met een margin en witte achtergrond maken!!-->
+<!--eventueel nog custom buttons maken met img(Niet in DoD!) -->
 
 <div class="pollIndexPage">
+
     <div class="customPollIndexPage">
-    <h1>Your Polls</h1>
+        <h1>Your Polls</h1>
 
-    <a class="btn btn-primary mb-3" asp-page="/CreatePoll">
-        Create Poll
-    </a>
+        <a class="btn btn-primary mb-3" asp-page="/CreatePoll">
+            Create Poll
+        </a>
     </div>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Question</th>
-                <th>Status</th>
-                <th>Votes</th>
-                <th>QR</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
 
-        <tbody>
-            @foreach (var poll in Model.Polls)
-            {
+    <div class="pollContainer">
 
-                <tr>
-                    <td>
-                        <strong>@poll.Question</strong>
-                    </td>
-                    <td>
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle"
-                                    data-bs-toggle="dropdown">
-                                @poll.Status
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <form method="post" asp-page-handler="ChangeStatus">
-                                        <input type="hidden" name="pollId" value="@poll.UserId" />
-                                        <input type="hidden" name="status" value="Draft" />
-                                        <button class="dropdown-item">Draft</button>
-                                    </form>
-                                </li>
-                                <li>
-                                    <form method="post" asp-page-handler="ChangeStatus">
-                                        <input type="hidden" name="pollId" value="@poll.UserId" />
-                                        <input type="hidden" name="status" value="Published" />
-                                        <button class="dropdown-item">Published</button>
-                                    </form>
-                                </li>
-                                <li>
-                                    <form method="post" asp-page-handler="ChangeStatus">
-                                        <input type="hidden" name="pollId" value="@poll.UserId" />
-                                        <input type="hidden" name="status" value="Closed" />
-                                        <button class="dropdown-item">Closed</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                    <td>
-                        @Model.TotalVotes(poll)
-                    </td>
-                    <td>
-                        @if (poll.QrCode != null)
-                        {
-                            <img src="data:image/png;base64,@poll.QrCode" width="80" />
-                        }
-                    </td>
-                    <td>
-                        @if (poll.Status == PollStation.Models.PollStatus.Published)
-                        {
-                            <a class="btn btn-primary btn-sm"
-                               asp-page="/PollPage"
-                               asp-route-id="@poll.UserId">
-                                Open Poll
-                            </a>
-                        }
+        @foreach (var poll in Model.Polls)
+        {
+            <div class="pollCard">
 
-                        <a class="btn btn-success btn-sm"
+                <h4>@poll.Question</h4>
+
+                <div class="mt-2">
+                    <strong>Status:</strong> @poll.Status
+                </div>
+
+                <div>
+                    <strong>Votes:</strong> @Model.TotalVotes(poll)
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="pollActions">
+
+                    <!-- LINKS: SLIDER -->
+                    <div class="leftActions">
+
+                        <!-- OPEN POLL -->
+                        <a class="btn btn-primary btn-sm openPollBtn @(poll.Status == PollStation.Models.PollStatus.Closed ? "disabled" : "")"
+                           asp-page="/PollPage"
+                           asp-route-id="@poll.Id">
+                            Open Poll
+                        </a>
+
+                        <!--Status-->
+                        <form class="statusForm">
+                            <input type="hidden" class="pollId" value="@poll.Id" />
+
+                            <label class="switch">
+                                <input type="checkbox"
+                                       onchange="toggleStatus(this)"
+                                       @(poll.Status == PollStation.Models.PollStatus.Open ? "checked" : "") />
+
+                                <span class="slider">
+                                    <span class="slider-text">
+                                        @(poll.Status == PollStation.Models.PollStatus.Open ? "Open" : "Closed")
+                                    </span>
+                                </span>
+                            </label>
+                        </form>
+                    </div>
+
+                    <!-- RECHTS: RESULTS, DOWNLOAD QR, DELETE -->
+                    <div class="rightActions">
+
+                        <!-- RESULTS -->
+                        <a class="btn btn-success"
                            asp-page="/PollIndex"
-                           asp-route-ShowResultsFor="@poll.UserId">
+                           asp-route-ShowResultsFor="@(Model.ShowResultsFor == poll.Id ? (int?)null : poll.Id)">
                             Results
                         </a>
 
-                        <form method="post"
-                              asp-page-handler="Delete"
-                              style="display:inline">
-                            <input type="hidden" name="pollId" value="@poll.UserId" />
+                        <!-- QR DOWNLOAD -->
+                        <form method="post" asp-page-handler="DownloadQr">
+                            <input type="hidden" name="pollId" value="@poll.Id" />
+                            <button class="btn btn-warning btn-sm">
+                                Download QR
+                            </button>
+                        </form>
+
+                        <!-- DELETE -->
+                        <form method="post" asp-page-handler="Delete">
+                            <input type="hidden" name="pollId" value="@poll.Id" />
                             <button class="btn btn-danger btn-sm"
                                     onclick="return confirm('Delete poll?')">
                                 Delete
                             </button>
                         </form>
-                    </td>
-                </tr>
+                    </div>
+                </div>
 
+                <!-- RESULTS -->
                 @if (Model.ShowResultsFor == poll.Id)
                 {
-                    <tr>
-                        <td colspan="5">
-                            <h5>Results</h5>
-                            @foreach (var option in poll.Options)
-                            {
-                                var percent = Model.Percentage(option.Votes, poll);
-                                <div class="mb-2">
-                                    <strong>@option.Text</strong>
-                                    <div class="progress">
-                                        <div class="progress-bar"
-                                             role="progressbar"
-                                             style="width:@percent%">
-                                            @percent%
-                                        </div>
+                    <div class="resultsBox mt-3">
+
+                        <h5>Results</h5>
+
+                        @foreach (var option in poll.Options)
+                        {
+                            var percent = Model.Percentage(option.Votes, poll);
+
+                            <div class="mb-2">
+                                <strong>@option.Text</strong>
+
+                                <div class="progress">
+                                    <div class="progress-bar"
+                                         style="width:@percent%">
+                                        @percent%
                                     </div>
                                 </div>
-                            }
-                        </td>
-                    </tr>
-                }            
-            }
-        </tbody>
-    </table>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
+
+<script>
+    async function toggleStatus(checkbox) {
+        const form = checkbox.closest(".statusForm");
+        const pollId = form.querySelector(".pollId").value;
+        const sliderText = form.querySelector(".slider-text");
+        const openBtn = form.closest(".pollCard").querySelector(".openPollBtn");
+
+        const status = checkbox.checked ? 0 : 1;
+
+        try {
+            const response = await fetch("/PollIndex?handler=ChangeStatus", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    pollId: parseInt(pollId),
+                    status: status
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Error updating status");
+            }
+
+            // ✅ tekst updaten
+            sliderText.textContent = checkbox.checked ? "Open" : "Closed";
+
+            // 🔥 knop live updaten
+            if (checkbox.checked) {
+                openBtn.classList.remove("disabled");
+            } else {
+                openBtn.classList.add("disabled");
+            }
+
+        } catch (error) {
+            alert("Er ging iets mis!");
+            checkbox.checked = !checkbox.checked;
+        }
+    }
+</script>
 
 <style>
     .pollIndexPage {
@@ -139,5 +176,115 @@
         background-color: #fafafa;
         border: solid 2px black;
         padding: 0.5rem;
+    }
+
+    .pollCard {
+        background-color: #fafafa;
+        border: 2px solid black;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 120px;
+        height: 40px;
+    }
+
+        .switch input {
+            display: none;
         }
+
+    /* SLIDER BASIS */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        background-color: red;
+        border: 2px solid black;
+        border-radius: 40px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transition: 0.4s;
+    }
+
+        /* BOLLETJE */
+        .slider::before {
+            position: absolute;
+            content: "";
+            height: 30px;
+            width: 30px;
+            left: 5px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+
+    /* OPEN = groen */
+    .switch input:checked + .slider {
+        background-color: green;
+    }
+
+        /* schuiven */
+        .switch input:checked + .slider::before {
+            transform: translateX(75px);
+        }
+
+    /* TEXT */
+    .slider-text {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        line-height: 36px;
+        color: white;
+        font-weight: bold;
+        pointer-events: none;
+    }
+
+    .pollActions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap; /* responsive */
+        gap: 1rem;
+    }
+
+    /* LINKS */
+    .leftActions {
+        display: flex;
+        align-items: center;
+    }
+
+    /* RECHTS */
+    .rightActions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+        /* 🔥 ALLE BUTTONS EVEN GROOT */
+        .rightActions .btn {
+            min-width: 120px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+        }
+
+        /* forms netjes inline */
+        .rightActions form {
+            margin: 0;
+        }
+
+    /* disabled styling */
+    .openPollBtn.disabled {
+        background-color: gray !important;
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
 </style>

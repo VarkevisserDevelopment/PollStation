@@ -1,118 +1,153 @@
 ﻿@page "{id:int}"
 @model PollStation.Pages.PollPageModel
 
-<!--Hier nog de indeling goed zetten en de progressbar customizen!! daarbij pijltjes naar volgende qeustion-->
 <div class="questionArea">
-
     <div class="customPollPage">
-    <div class="onlineCounter">
-        Users connected: <span id="onlineUsers">0</span>
-    </div>
-
-    <h1>@Model.Poll.Question</h1>
-
-    <!-- QR CODE -->
-    @if (Model.Poll.QrCode != null)
-    {
-        <div class="qrArea">
-            <p>Scan to vote</p>
-            <img src="data:image/png;base64,@Model.Poll.QrCode" width="160" />
+        <div class="onlineCounter">
+            Users connected: <span id="onlineUsers">0</span>
         </div>
-    }
 
-    <div class="pollButtonArea">
+        <h1>@Model.Poll.Question</h1>
 
-        @foreach (var option in Model.Poll.Options)
+        <!-- QR CODE -->
+        @if (Model.Poll.QrCode != null)
         {
-            <form method="post" asp-page-handler="Vote">
-
-                <input type="hidden" name="optionId" value="@option.UserId" />
-                <input type="hidden" name="pollId" value="@Model.Poll.UserId" />
-
-                <button class="btn btn-primary pollButton">
-                    @option.Text
-                </button>
-
-            </form>
+            <div class="qrArea">
+                <p>Scan to vote</p>
+                <img src="data:image/png;base64,@Model.Poll.QrCode" width="160" />
+            </div>
         }
 
-    </div>
-
-    <hr />
-
-    <h3>Results</h3>
-
-    <!-- STACKED PROGRESS BAR -->
-    <div class="progress bigProgress">
-
-        @{
-            var colors = new string[]
+        <!-- Stemknoppen -->
+        <div class="pollButtonArea">
+            @foreach (var option in Model.Poll.Options)
             {
-                "bg-success",
-                "bg-info",
-                "bg-warning",
-                "bg-danger"
-            };
+                <form onsubmit="vote(event, @option.Id, @Model.Poll.Id)">
+                    <button class="btn btn-primary pollButton optionBtn"
+                            data-option-id="@option.Id">
+                        @option.Text
+                    </button>
+                </form>
+            }
+        </div>
 
-            int i = 0;
-        }
+        <hr />
 
-        @foreach (var option in Model.Poll.Options)
-        {
-            var percent = Model.Percentage(option.Votes);
-            var color = colors[i % colors.Length];
+        <h3>Results</h3>
 
-            <div class="progress-bar @color"
-                 role="progressbar"
-                 style="width:@percent%">
+        <!-- Progressbars -->
+        <div class="progress bigProgress">
+            @foreach (var option in Model.Poll.Options)
+            {
+                var percent = Model.Percentage(option.Votes);
+                var colors = new string[] { "bg-success", "bg-info", "bg-warning", "bg-danger" };
+                var color = colors[option.Id % colors.Length];
+                <div class="progress-bar @color"
+                     role="progressbar"
+                     data-option-id="@option.Id"
+                     data-votes="@option.Votes"
+                     style="width:@percent%">
+                    @option.Text (@percent%)
+                </div>
+            }
+        </div>
 
-                @option.Text (@percent%)
+        <!-- Legend -->
+        <div class="legend">
+            @foreach (var option in Model.Poll.Options)
+            {
+                var percent = Model.Percentage(option.Votes);
+                <div>
+                    <strong>@option.Text</strong> — @percent% (@option.Votes votes)
+                </div>
+            }
+        </div>
 
-            </div>
-
-            i++;
-        }
-
-    </div>
-
-    <!-- LEGEND -->
-    <div class="legend">
-
-        @foreach (var option in Model.Poll.Options)
-        {
-            var percent = Model.Percentage(option.Votes);
-
-            <div>
-                <strong>@option.Text</strong> — @percent% (@option.Votes votes)
-            </div>
-        }
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-
-    <script>
-
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/pollhub")
-            .build();
-
-        connection.on("PollUpdated", function () {
-
-            location.reload();
-
-        });
-
-        connection.on("UpdateUsers", function (count) {
-            document.getElementById("onlineUsers").innerText = count;
-        });
-        connection.start();
-    </script>
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    // SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/pollhub")
+        .build();
 
+    // STEMMEN + highlight + POST
+    async function vote(event, optionId, pollId) {
+        event.preventDefault();
+
+        // highlight knop
+        document.querySelectorAll(".optionBtn").forEach(btn => btn.classList.remove("selected"));
+        document.querySelector(`[data-option-id='${optionId}']`)?.classList.add("selected");
+
+        // POST naar server
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        await fetch(`/PollPage?handler=Vote`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": token
+            },
+            body: JSON.stringify({ optionId, pollId })
+        });
+        // **SignalR update regelt live update**
+    }
+
+    // Update progressbars en legend
+    function updateProgress(options) {
+        const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+
+        options.forEach(o => {
+            const bar = document.querySelector(`.progress-bar[data-option-id='${o.id}']`);
+            if (!bar) return;
+
+            const percent = totalVotes === 0 ? 0 : Math.round((o.votes / totalVotes) * 100);
+            bar.dataset.votes = o.votes;
+            bar.style.width = percent + "%";
+            bar.innerText = `${o.text} (${percent}%)`;
+
+            // update legend
+            const legendItem = [...document.querySelectorAll(".legend div")]
+                .find(div => div.innerText.includes(o.text));
+            if (legendItem) legendItem.innerText = `${o.text} — ${percent}% (${o.votes} votes)`;
+        });
+    }
+
+    // Highlight gekozen optie bij reload
+    window.addEventListener("load", () => {
+        const cookieName = "voted_poll_" + @Model.Poll.Id;
+        const cookies = document.cookie.split("; ");
+        for (let c of cookies) {
+            if (c.startsWith(cookieName)) {
+                const value = c.split("=")[1];
+                const btn = document.querySelector(`[data-option-id='${value}']`);
+                if (btn) btn.classList.add("selected");
+            }
+        }
+
+        // Smooth progressbar animatie
+        document.querySelectorAll(".progress-bar").forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = "0%";
+            setTimeout(() => { bar.style.width = width; }, 200);
+        });
+    });
+
+    // Live update via SignalR
+    connection.on("PollUpdated", function (options) {
+        updateProgress(options);
+    });
+
+    // Online users
+    connection.on("UpdateUsers", function (count) {
+        document.getElementById("onlineUsers").innerText = count;
+    });
+
+    connection.start();
+</script>
 
 <style>
-
     .questionArea {
         display: flex;
         flex-direction: column;
@@ -146,6 +181,17 @@
         margin: 10px;
     }
 
+    .optionBtn.selected {
+        background-color: #28a745 !important;
+        border: 2px solid black;
+        transform: scale(1.05);
+    }
+
+    .optionBtn:hover {
+        transform: scale(1.03);
+        transition: 0.2s;
+    }
+
     .bigProgress {
         height: 40px;
         margin-top: 20px;
@@ -155,4 +201,7 @@
         margin-top: 15px;
     }
 
+    .progress-bar {
+        transition: width 0.6s ease-in-out;
+    }
 </style>

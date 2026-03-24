@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using PollStation.Data;
 using PollStation.Models;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
 
 namespace PollStation.Pages
 {
@@ -14,16 +17,16 @@ namespace PollStation.Pages
         private readonly PollStationContext _context;
         private readonly UserManager<IdentityUser> _userManager;
 
-        [BindProperty(SupportsGet = true)]
-        public int? ShowResultsFor { get; set; }
-
         public PollIndexModel(PollStationContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
 
-        public List<Poll> Polls { get; set; }
+        public List<Poll> Polls { get; set; } = new();
+
+        [BindProperty(SupportsGet = true)]
+        public int? ShowResultsFor { get; set; }
 
         public async Task OnGetAsync()
         {
@@ -31,13 +34,14 @@ namespace PollStation.Pages
 
             if (user == null)
             {
-                Polls = new List<Poll>(); // voorkomt crash
+                Polls = new List<Poll>();
                 return;
             }
 
             Polls = await _context.Polls
                 .Include(p => p.Options)
                 .Where(p => p.UserId == user.Id)
+                .OrderByDescending(p => p.Id)
                 .ToListAsync();
         }
 
@@ -54,7 +58,6 @@ namespace PollStation.Pages
             return (int)Math.Round((double)votes / total * 100);
         }
 
-        // ✅ DELETE FIXED
         public async Task<IActionResult> OnPostDeleteAsync(int pollId)
         {
             var poll = await _context.Polls
@@ -65,25 +68,42 @@ namespace PollStation.Pages
             {
                 _context.PollOptions.RemoveRange(poll.Options);
                 _context.Polls.Remove(poll);
-
                 await _context.SaveChangesAsync();
             }
 
             return RedirectToPage();
         }
 
-        // ✅ STATUS CHANGE
-        public async Task<IActionResult> OnPostChangeStatusAsync(int pollId, PollStatus status)
+        public class StatusUpdateModel
+        {
+            public int PollId { get; set; }
+            public PollStatus Status { get; set; }
+        }
+
+        public async Task<IActionResult> OnPostChangeStatusAsync([FromBody] StatusUpdateModel model)
+        {
+            var poll = await _context.Polls.FindAsync(model.PollId);
+
+            if (poll == null)
+                return NotFound();
+
+            poll.Status = model.Status;
+
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(new { success = true });
+        }
+
+        public async Task<IActionResult> OnPostDownloadQrAsync(int pollId)
         {
             var poll = await _context.Polls.FindAsync(pollId);
 
-            if (poll != null)
-            {
-                poll.Status = status;
-                await _context.SaveChangesAsync();
-            }
+            if (poll == null || string.IsNullOrEmpty(poll.QrCode))
+                return NotFound();
 
-            return RedirectToPage();
+            byte[] imageBytes = Convert.FromBase64String(poll.QrCode);
+
+            return File(imageBytes, "image/png", $"Poll_{pollId}_QR.png");
         }
     }
 }

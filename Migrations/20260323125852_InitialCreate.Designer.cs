@@ -11,7 +11,7 @@ using PollStation.Data;
 namespace PollStation.Migrations
 {
     [DbContext(typeof(PollStationContext))]
-    [Migration("20260323092535_InitialCreate")]
+    [Migration("20260323125852_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

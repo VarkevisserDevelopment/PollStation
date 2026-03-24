@@ -13,11 +13,17 @@ namespace PollStation.Hubs
             return base.OnConnectedAsync();
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override Task OnDisconnectedAsync(Exception? exception)
         {
             OnlineUsers--;
             Clients.All.SendAsync("UpdateUsers", OnlineUsers);
             return base.OnDisconnectedAsync(exception);
+        }
+
+        // Live update van stemmen voor alle clients
+        public async Task BroadcastPollUpdate(object pollData)
+        {
+            await Clients.All.SendAsync("PollUpdated", pollData);
         }
     }
 }

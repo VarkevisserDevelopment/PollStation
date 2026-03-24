@@ -2,9 +2,9 @@
 
 Create a new project for the app development.																					[V]
 Implement Basic functionality for the app including user authentication, data storage, and basic UI components.					[V]
-Implement custom ArtWork																										[ ]
+Implement custom ArtWork																										[V]
 Implement qr code for the app																									[V]
-Implement the page styling for the app, ensuring a consistent and visually appealing design across all pages.					[ ]
+Implement the page styling for the app, ensuring a consistent and visually appealing design across all pages.					[V]
 Implement the styling with other devices for the app.																			[ ]
 Implement the functionality for the app, ensuring that all features work as intended and provide a seamless user experience.	[V]
 

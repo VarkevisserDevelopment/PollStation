@@ -42,7 +42,7 @@ namespace PollStation.Pages
             {
                 Question = Poll.Question,
                 UserId = user.Id,
-                Status = PollStatus.Draft,
+                Status = PollStatus.Open,
                 Options = Options
                     .Where(o => !string.IsNullOrWhiteSpace(o))
                     .Select(o => new PollOption
