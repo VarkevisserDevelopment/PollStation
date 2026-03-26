@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PollStation.Data;
-using PollStation.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("PollStationContextConnection") ?? throw new InvalidOperationException("Connection string 'PollStationContextConnection' not found.");
@@ -33,6 +32,6 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
-app.MapHub<PollHub>("/pollhub");
+app.MapHub<PollHub>("/PollHub");
 
 app.Run();

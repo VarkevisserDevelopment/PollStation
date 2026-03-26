@@ -1,29 +1,54 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using PollStation.Data;
 
-namespace PollStation.Hubs
+public class PollHub : Hub
 {
-    public class PollHub : Hub
+    private static int _onlineUsers = 0;
+    private readonly PollStationContext _context;
+
+    public PollHub(PollStationContext context)
     {
-        private static int OnlineUsers = 0;
+        _context = context;
+    }
 
-        public override Task OnConnectedAsync()
-        {
-            OnlineUsers++;
-            Clients.All.SendAsync("UpdateUsers", OnlineUsers);
-            return base.OnConnectedAsync();
-        }
+    public override async Task OnConnectedAsync()
+    {
+        _onlineUsers++;
 
-        public override Task OnDisconnectedAsync(Exception? exception)
-        {
-            OnlineUsers--;
-            Clients.All.SendAsync("UpdateUsers", OnlineUsers);
-            return base.OnDisconnectedAsync(exception);
-        }
+        await Clients.All.SendAsync("UpdateUserCount", _onlineUsers);
 
-        // Live update van stemmen voor alle clients
-        public async Task BroadcastPollUpdate(object pollData)
+        await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception exception)
+    {
+        _onlineUsers--;
+
+        await Clients.All.SendAsync("UpdateUserCount", _onlineUsers);
+
+        await base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task Vote(int pollId, int optionId)
+    {
+        var option = await _context.PollOptions.FindAsync(optionId);
+        if (option == null) return;
+
+        option.Votes++;
+        await _context.SaveChangesAsync();
+
+        var poll = await _context.Polls
+            .Include(p => p.Options)
+            .FirstOrDefaultAsync(p => p.Id == pollId);
+
+        var optionsDto = poll.Options.Select(o => new
         {
-            await Clients.All.SendAsync("PollUpdated", pollData);
-        }
+            id = o.Id,
+            text = o.Text,
+            votes = o.Votes
+        }).ToList();
+
+        await Clients.All.SendAsync("PollUpdated", optionsDto);
     }
 }
